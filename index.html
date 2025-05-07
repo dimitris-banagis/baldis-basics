@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baldi's Basics - 3D Realistic</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #cce7ff;
+    }
+
+    #game-container {
+      width: 100%;
+      height: 100vh;
+    }
+
+    #score {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 24px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    #message {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      color: red;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+</head>
+<body>
+
+  <div id="game-container"></div>
+  <div id="score">Σκορ: 0</div>
+  <div id="message"></div>
+
+  <script>
+    let score = 0;
+    let message = document.getElementById("message");
+
+    // Δημιουργία σκηνής
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('game-container').appendChild(renderer.domElement);
+
+    // Δημιουργία δαπέδου και τοίχων (σκηνή σχολείου)
+    const floorGeometry = new THREE.PlaneGeometry(200, 200);
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = - Math.PI / 2;
+    scene.add(floor);
+
+    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
+    const wall1 = new THREE.Mesh(new THREE.PlaneGeometry(200, 20), wallMaterial);
+    wall1.position.set(0, 10, -100);
+    wall1.rotation.y = Math.PI;
+    scene.add(wall1);
+
+    const wall2 = new THREE.Mesh(new THREE.PlaneGeometry(200, 20), wallMaterial);
+    wall2.position.set(0, 10, 100);
+    scene.add(wall2);
+
+    const wall3 = new THREE.Mesh(new THREE.PlaneGeometry(20, 200), wallMaterial);
+    wall3.position.set(-100, 10, 0);
+    wall3.rotation.y = Math.PI / 2;
+    scene.add(wall3);
+
+    const wall4 = new THREE.Mesh(new THREE.PlaneGeometry(20, 200), wallMaterial);
+    wall4.position.set(100, 10, 0);
+    wall4.rotation.y = Math.PI / 2;
+    scene.add(wall4);
+
+    // Δημιουργία χαρακτήρα Baldi (σκελετός και σχήμα)
+    const baldiGeometry = new THREE.BoxGeometry(2, 5, 2);
+    const baldiMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+    const baldi = new THREE.Mesh(baldiGeometry, baldiMaterial);
+    baldi.position.set(0, 2.5, 0);
+    scene.add(baldi);
+
+    // Ρυθμίσεις κάμερας
+    camera.position.set(0, 10, 30);
+    camera.lookAt(baldi.position);
+
+    // Προσθήκη κίνησης στην κάμερα
+    let speed = 0.1;
+    let moveForward = false;
+    let moveBackward = false;
+    let moveLeft = false;
+    let moveRight = false;
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowUp') moveForward = true;
+      if (event.key === 'ArrowDown') moveBackward = true;
+      if (event.key === 'ArrowLeft') moveLeft = true;
+      if (event.key === 'ArrowRight') moveRight = true;
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.key === 'ArrowUp') moveForward = false;
+      if (event.key === 'ArrowDown') moveBackward = false;
+      if (event.key === 'ArrowLeft') moveLeft = false;
+      if (event.key === 'ArrowRight') moveRight = false;
+    });
+
+    // Λειτουργία κίνησης
+    function movePlayer() {
+      if (moveForward) baldi.position.z -= speed;
+      if (moveBackward) baldi.position.z += speed;
+      if (moveLeft) baldi.position.x -= speed;
+      if (moveRight) baldi.position.x += speed;
+    }
+
+    function checkCollision() {
+      if (baldi.position.x < -90 || baldi.position.x > 90 || baldi.position.z < -90 || baldi.position.z > 90) {
+        message.textContent = "Κτύπησες στον τοίχο!";
+        score -= 5;
+      } else {
+        message.textContent = "";
+        if (score >= 0) score++;
+      }
+      document.getElementById('score').textContent = "Σκορ: " + score;
+    }
+
+    // Κύρια συνάρτηση εμφάνισης
+    function animate() {
+      requestAnimationFrame(animate);
+      movePlayer();
+      checkCollision();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+
+</body>
+</html>
